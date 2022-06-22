@@ -1,0 +1,30 @@
+language: generic
+
+sudo: required
+
+services:
+  - docker
+
+before_deploy:
+  - docker build -t mardixx/docker-frontend ./frontend
+  - docker build -t mardixx/docker-backend ./backend
+  - docker build -t mardixx/docker-nginx ./nginx
+  - docker build -t mardixx/docker-mysql ./mysql
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+
+  - docker push mardixx/docker-frontend
+  - docker push mardixx/docker-backend
+  - docker push mardixx/docker-nginx
+  - docker push mardixx/docker-mysql
+
+deploy:
+  provider: elasticbeanstalk
+  region: "us-west-2"
+  app: "docker-multi-app"
+  env: "Dockermultiapp-env-1"
+  bucket_name: "elasticbeanstalk-us-west-2-238664715030"
+  bucket_path: "docker-multi-app"
+  on:
+    branch: main
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
